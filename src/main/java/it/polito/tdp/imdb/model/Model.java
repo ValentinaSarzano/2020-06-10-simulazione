@@ -1,11 +1,16 @@
 package it.polito.tdp.imdb.model;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.jgrapht.Graph;
 import org.jgrapht.Graphs;
+import org.jgrapht.alg.connectivity.ConnectivityInspector;
 import org.jgrapht.graph.DefaultWeightedEdge;
 import org.jgrapht.graph.SimpleWeightedGraph;
 
@@ -64,4 +69,39 @@ public class Model {
 			return true;
 	}
 
+	public List<Actor> getVertici() {
+		List<Actor> result = new ArrayList<>(this.grafo.vertexSet());
+		
+		Collections.sort(result, new Comparator<Actor>() {
+
+			@Override
+			public int compare(Actor a1, Actor a2) {
+				return a1.getLastName().compareTo(a2.getLastName());
+			}
+			
+		});
+		
+		return result;
+	}
+
+	public List<Actor> getAttoriSimili(Actor a){ //COMPONENTE CONNESSA
+
+		ConnectivityInspector<Actor, DefaultWeightedEdge> ci = new ConnectivityInspector<Actor, DefaultWeightedEdge>(this.grafo);
+		List<Actor> attoriSimili = new ArrayList<>(ci.connectedSetOf(a));
+		attoriSimili.remove(a);
+		
+		Collections.sort(attoriSimili, new Comparator<Actor>() {
+
+			@Override
+			public int compare(Actor a1, Actor a2) {
+				return a1.getLastName().compareTo(a2.getLastName());
+			}
+			
+		}
+				);
+				
+		return attoriSimili;
+		
+	}
+	
 }

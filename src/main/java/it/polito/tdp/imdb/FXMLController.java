@@ -5,8 +5,11 @@
 package it.polito.tdp.imdb;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
 
+import it.polito.tdp.imdb.model.Actor;
 import it.polito.tdp.imdb.model.Model;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -38,7 +41,7 @@ public class FXMLController {
     private ComboBox<String> boxGenere; // Value injected by FXMLLoader
 
     @FXML // fx:id="boxAttore"
-    private ComboBox<?> boxAttore; // Value injected by FXMLLoader
+    private ComboBox<Actor> boxAttore; // Value injected by FXMLLoader
 
     @FXML // fx:id="txtGiorni"
     private TextField txtGiorni; // Value injected by FXMLLoader
@@ -48,6 +51,21 @@ public class FXMLController {
 
     @FXML
     void doAttoriSimili(ActionEvent event) {
+    	
+    	if(!this.model.grafoCreato()) {
+    		txtResult.appendText("ERRORE: Creare prima il grafo!\n");
+    	}
+    	txtResult.clear();
+    	Actor a = boxAttore.getValue();
+    	if(a == null) {
+    		txtResult.appendText("ERRORE: Selezionare un attore dal menu a tendina!\n");
+    	}
+    	List<Actor> attoriSimili = new ArrayList<>(this.model.getAttoriSimili(a));
+    	txtResult.appendText("ATTORI SIMILI A "+ a +": \n");
+    	for(Actor actor: attoriSimili) {
+    		txtResult.appendText("" + actor +"\n");
+    	}
+    	
 
     }
 
@@ -60,6 +78,9 @@ public class FXMLController {
     		txtResult.appendText("ERRORE: Selezionare prima un genere dal menu a tendina!\n");
     	}
     	this.model.creaGrafo(genere);
+    	
+    	boxAttore.getItems().addAll(this.model.getVertici());
+    	btnSimili.setDisable(false);
 
     	txtResult.appendText("Grafo creato!\n");
     	txtResult.appendText("#VERTICI: "+ this.model.nVertici()+"\n");
@@ -88,5 +109,6 @@ public class FXMLController {
     public void setModel(Model model) {
     	this.model = model;
     	boxGenere.getItems().addAll(this.model.getAllGenres());
+    	btnSimili.setDisable(true);
     }
 }
