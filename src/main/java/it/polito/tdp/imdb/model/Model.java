@@ -1,7 +1,6 @@
 package it.polito.tdp.imdb.model;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -21,6 +20,8 @@ public class Model {
 	private Graph<Actor, DefaultWeightedEdge> grafo;
 	private ImdbDAO dao;
 	private Map<Integer, Actor> idMap;
+	
+	private Simulatore sim;
 	
 	public Model() {
 		super();
@@ -103,5 +104,32 @@ public class Model {
 		return attoriSimili;
 		
 	}
+	
+	public void simula(int n) {
+		sim = new Simulatore(n, this.grafo);
+		sim.init(n);
+		sim.run();
+		
+	}
+	
+	public List<Actor> getIntervistati(){
+		if(sim == null) {
+			return null;
+		}
+		return new ArrayList<>(sim.getIntervistati().values());
+		
+	}
+	
+	public Integer getPause() {
+		if(sim == null) {
+			return null;
+		}
+		return sim.getnPause();
+	}
+
+	public Graph<Actor, DefaultWeightedEdge> getGrafo() {
+		return grafo;
+	}
+	
 	
 }
