@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.jgrapht.Graph;
 import org.jgrapht.Graphs;
@@ -16,9 +18,8 @@ import org.jgrapht.graph.SimpleWeightedGraph;
 import it.polito.tdp.imdb.db.ImdbDAO;
 
 public class Model {
-	
-	private Graph<Actor, DefaultWeightedEdge> grafo;
 	private ImdbDAO dao;
+	private Graph<Actor, DefaultWeightedEdge> grafo;
 	private Map<Integer, Actor> idMap;
 	
 	private Simulatore sim;
@@ -32,27 +33,24 @@ public class Model {
 		return this.dao.getAllGenres();
 	}
 	
-	public void creaGrafo(String g) {
+	public void creaGrafo(String genere) {
 		this.grafo = new SimpleWeightedGraph<>(DefaultWeightedEdge.class);
-	    this.idMap = new HashMap<>();
-	    
-	    this.dao.getVertici(g, idMap);
-	    
-	    //Aggiunta vertici
-	    Graphs.addAllVertices(this.grafo, idMap.values());
-	    
-	    //Aggiunta archi
-	    for(Adiacenza a: this.dao.getAdiacenze(g, idMap)) {
-	    	if(this.grafo.containsVertex(a.getA1()) && this.grafo.containsVertex(a.getA2())) {
-	    		Graphs.addEdgeWithVertices(this.grafo, a.getA1(), a.getA2(), a.getPeso());
-	    	}
-	    }
-	
-	    System.out.println("Grafo creato!");
+		this.idMap = new HashMap<>();
+		
+		this.dao.getVertici(genere, idMap);
+		
+		//Aggiungo i vertici
+		Graphs.addAllVertices(this.grafo, idMap.values());
+		
+		//Aggiungo gli archi
+		for(Adiacenza a: this.dao.getAdiacenze(genere, idMap)) {
+			if(this.grafo.containsVertex(a.getA1()) && this.grafo.containsVertex(a.getA2())) {
+				Graphs.addEdgeWithVertices(this.grafo, a.getA1(), a.getA2(), a.getPeso());
+			}
+		}
+		System.out.println("Grafo creato!");
 		System.out.println("#VERTICI: "+ this.grafo.vertexSet().size());
 		System.out.println("#ARCHI: "+ this.grafo.edgeSet().size());
-		
-	
 	}
 	
 	public int nVertici() {
@@ -69,42 +67,39 @@ public class Model {
 		else 
 			return true;
 	}
+	
+	public List<Actor> getVertici(){
+		List<Actor> vertici = new ArrayList<>(this.grafo.vertexSet());
+		 Collections.sort(vertici, new Comparator<Actor>() {
 
-	public List<Actor> getVertici() {
-		List<Actor> result = new ArrayList<>(this.grafo.vertexSet());
-		
-		Collections.sort(result, new Comparator<Actor>() {
-
-			@Override
-			public int compare(Actor a1, Actor a2) {
-				return a1.getLastName().compareTo(a2.getLastName());
-			}
-			
-		});
-		
-		return result;
-	}
-
-	public List<Actor> getAttoriSimili(Actor a){ //COMPONENTE CONNESSA
-
-		ConnectivityInspector<Actor, DefaultWeightedEdge> ci = new ConnectivityInspector<Actor, DefaultWeightedEdge>(this.grafo);
-		List<Actor> attoriSimili = new ArrayList<>(ci.connectedSetOf(a));
-		attoriSimili.remove(a);
-		
-		Collections.sort(attoriSimili, new Comparator<Actor>() {
-
-			@Override
-			public int compare(Actor a1, Actor a2) {
-				return a1.getLastName().compareTo(a2.getLastName());
-			}
-			
-		}
-				);
-				
-		return attoriSimili;
-		
+				@Override
+				public int compare(Actor o1, Actor o2) {
+					return o1.getLastName().compareTo(o2.getLastName());
+				}
+		    	
+		    });
+		    return vertici;
 	}
 	
+	public List<Actor> getAttoriSimili(Actor a){
+		
+		Set<Actor> componenteConnessa = new HashSet<>();
+	    ConnectivityInspector<Actor, DefaultWeightedEdge> ci = new ConnectivityInspector<>(this.grafo);
+	    componenteConnessa = ci.connectedSetOf(a);
+	    componenteConnessa.remove(a);
+	    
+	    List<Actor> simili = new ArrayList<>(componenteConnessa);
+	    
+	    Collections.sort(simili, new Comparator<Actor>() {
+
+			@Override
+			public int compare(Actor o1, Actor o2) {
+				return o1.getLastName().compareTo(o2.getLastName());
+			}
+	    	
+	    });
+	    return simili;
+	}
 	public void simula(int n) {
 		sim = new Simulatore(n, this.grafo);
 		sim.init(n);
@@ -127,9 +122,4 @@ public class Model {
 		return sim.getnPause();
 	}
 
-	public Graph<Actor, DefaultWeightedEdge> getGrafo() {
-		return grafo;
-	}
-	
-	
 }

@@ -4,6 +4,7 @@ public class Event implements Comparable<Event>{
 	
 	public enum EventType{
 		DA_INTERVISTARE, 
+		PAUSA
 	}
 
 	//Attributi dell'evento

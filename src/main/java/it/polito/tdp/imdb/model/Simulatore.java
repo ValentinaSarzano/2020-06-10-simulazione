@@ -39,18 +39,14 @@ public class Simulatore {
 		
 	}
 
-	//Getters+setters --> dati in input, Getters --> dati in output
+	//Setters --> dati in ingresso 
 	
-	public int getNumGiorni() {
-		return numGiorni;
-	}
-
-
 	public void setNumGiorni(int numGiorni) {
 		this.numGiorni = numGiorni;
 	}
 
-
+	//Getters --> dati in uscita
+	
 	public int getnPause() {
 		return nPause;
 	}
@@ -63,8 +59,8 @@ public class Simulatore {
 	
 	public void init(int n) {
 		
-		this.ancoraDisponibili = new ArrayList<Actor>(this.grafo.vertexSet());
-		this.intervistati = new HashMap<Integer, Actor>();
+		this.ancoraDisponibili = new ArrayList<>(this.grafo.vertexSet());
+		this.intervistati = new HashMap<>();
 		this.queue = new PriorityQueue<Event>();
 		
 		this.nPause = 0;
@@ -92,7 +88,6 @@ public class Simulatore {
 			Event e = this.queue.poll(); //Estraggo l'evento
 			processEvent(e);
 		}
-		
 	}
 	
 
@@ -105,16 +100,18 @@ public class Simulatore {
 			int indiceRandom = (int) Math.random()*(indice+1);
 			
 			//Giorno successivo al giorno di pausa, sceglie casualmente chi intervistare
-			if(!this.intervistati.containsKey(giorno-1)) {
+			if(this.intervistati.get(giorno-1) == null) {
 				   Actor intervistato = this.ancoraDisponibili.get(indiceRandom);
 				   this.queue.add(new Event(giorno, EventType.DA_INTERVISTARE, intervistato));
 				   this.intervistati.put(giorno, intervistato);
 			}
 
 			// Attori delllo stesso genere per due giorni di fila
-			if(giorno >=2 && this.intervistati.containsKey(giorno-2) && this.intervistati.containsKey(giorno-2) && this.intervistati.get(giorno-1).getGender().equals(this.intervistati.get(giorno-2).getGender())) {
+			if(giorno >= 2 && this.intervistati.get(giorno-2) != null && this.intervistati.get(giorno-1) != null && this.intervistati.get(giorno-1).getGender().equals(this.intervistati.get(giorno-2).getGender())) {
 				if(Math.random()>=0.1) {
 					this.nPause++;
+					 this.queue.add(new Event(giorno, EventType.PAUSA, null));
+					 this.intervistati.put(giorno, null);
 			    }
 			}
 			
@@ -141,7 +138,7 @@ public class Simulatore {
 	}
 
 
-	private Actor suggerisciIntervistato(Actor ultimoIntervistato) {
+	private Actor suggerisciIntervistato(Actor ultimoIntervistato) { //prende il vicino di peso max
 		int pesoMax = 0;
 		Actor scelto = null;
 		for(Actor a: Graphs.neighborListOf(this.grafo, ultimoIntervistato)) {

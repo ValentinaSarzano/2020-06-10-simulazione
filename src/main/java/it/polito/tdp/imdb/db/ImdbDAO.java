@@ -39,69 +39,6 @@ public class ImdbDAO {
 		}
 	}
 	
-	public void getVertici(String genre, Map<Integer, Actor> idMap) {
-		String sql ="SELECT DISTINCT a.id, a.first_name, a.last_name, a.gender "
-				+ "FROM actors a, roles r, movies_genres m "
-				+ "WHERE a.id = r.actor_id AND r.movie_id = m.movie_id AND m.genre = ? "
-				+ "ORDER BY id ";
-		
-		Connection conn = DBConnect.getConnection();
-
-		try {
-			PreparedStatement st = conn.prepareStatement(sql);
-			st.setString(1, genre);
-			ResultSet res = st.executeQuery();
-			while (res.next()) {
-
-				if(!idMap.containsKey(res.getInt("a.id"))) {
-				Actor actor = new Actor(res.getInt("a.id"), res.getString("a.first_name"), res.getString("a.last_name"),
-						res.getString("a.gender"));
-				idMap.put(res.getInt("a.id"), actor);
-				}
-				
-			}
-			conn.close();
-			
-		} catch (SQLException e) {
-			e.printStackTrace();
-			return;
-		}
-		
-	}
-	
-	public List<Adiacenza> getAdiacenze(String genre, Map<Integer, Actor> idMap){
-		String sql = "SELECT a1.id AS id1, a2.id AS id2, COUNT(DISTINCT r1.movie_id) AS peso "
-				+ "FROM actors a1, actors a2, roles r1, roles r2, movies_genres m1, movies_genres m2 "
-				+ "WHERE a1.id < a2.id "
-				+ "AND r1.actor_id = a1.id AND r2.actor_id = a2.id "
-				+ "AND r1.movie_id = r2.movie_id "
-				+ "AND r1.movie_id = m1.movie_id AND r2.movie_id = m2.movie_id "
-				+ "AND m1.genre = ? AND m1.genre = m2.genre "
-				+ "GROUP BY a1.id, a2.id";
-		
-		List<Adiacenza> result = new ArrayList<>();
-		Connection conn = DBConnect.getConnection();
-
-		try {
-			PreparedStatement st = conn.prepareStatement(sql);
-			st.setString(1, genre);
-			ResultSet res = st.executeQuery();
-			while (res.next()) {
-
-				if(idMap.containsKey(res.getInt("id1")) && idMap.containsKey(res.getInt("id2"))) {
-					Adiacenza a = new Adiacenza(idMap.get(res.getInt("id1")),idMap.get(res.getInt("id2")), res.getInt("peso"));
-				    result.add(a);
-				}
-			}
-			conn.close();
-			return result;
-		} catch (SQLException e) {
-			e.printStackTrace();
-			return null;
-		}
-		
-		
-	}
 	
 	public List<Movie> listAllMovies(){
 		String sql = "SELECT * FROM movies";
@@ -177,6 +114,65 @@ public class ImdbDAO {
 	
 	}
 	
+	public void getVertici(String genere, Map<Integer, Actor> idMap) {
+		String sql = "SELECT DISTINCT a.id, a.first_name, a.last_name, a.gender "
+				+ "FROM actors a, roles r, movies_genres mg "
+				+ "WHERE a.id = r.actor_id "
+				+ "AND mg.movie_id = r.movie_id "
+				+ "AND mg.genre = ? ";
+		Connection conn = DBConnect.getConnection();
+
+		try {
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setString(1, genere);
+			ResultSet res = st.executeQuery();
+			while (res.next()) {
+
+				if(!idMap.containsKey(res.getInt("a.id"))) {
+					Actor actor = new Actor(res.getInt("id"), res.getString("first_name"), res.getString("last_name"),
+							res.getString("gender"));
+					idMap.put(res.getInt("a.id"), actor);
+				}
+			}
+			conn.close();
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return;
+		}
+	}
+	
+	public List<Adiacenza> getAdiacenze(String genere, Map<Integer, Actor> idMap){
+		String sql = "SELECT a1.id AS id1, a2.id AS id2, COUNT(mg1.movie_id) AS peso "
+				+ "FROM actors a1, actors a2, roles r1, roles r2, movies_genres mg1, movies_genres mg2 "
+				+ "WHERE a1.id < a2.id "
+				+ "AND a1.id = r1.actor_id AND a2.id = r2.actor_id "
+				+ "AND mg1.movie_id = r1.movie_id AND mg2.movie_id = r2.movie_id AND mg1.movie_id = mg2.movie_id "
+				+ "AND mg1.genre = mg2.genre AND mg1.genre = ? "
+				+ "GROUP BY id1, id2";
+		List<Adiacenza> result = new ArrayList<>();
+		Connection conn = DBConnect.getConnection();
+
+		try {
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setString(1, genere);
+			ResultSet res = st.executeQuery();
+			while (res.next()) {
+
+				if(idMap.containsKey(res.getInt("id1")) && idMap.containsKey(res.getInt("id2"))) {
+					Adiacenza a = new Adiacenza(idMap.get(res.getInt("id1")), idMap.get(res.getInt("id2")), res.getInt("peso"));
+				    result.add(a);
+				}
+				
+			}
+			conn.close();
+			return result;
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
 	
 	
 }

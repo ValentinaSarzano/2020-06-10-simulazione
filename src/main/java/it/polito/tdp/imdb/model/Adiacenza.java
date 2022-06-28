@@ -1,6 +1,7 @@
 package it.polito.tdp.imdb.model;
 
 public class Adiacenza {
+
 	private Actor a1;
 	private Actor a2;
 	private int peso;
@@ -36,6 +37,4 @@ public class Adiacenza {
 		this.peso = peso;
 	}
 	
-	
-
 }

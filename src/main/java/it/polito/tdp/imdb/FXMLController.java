@@ -51,21 +51,17 @@ public class FXMLController {
 
     @FXML
     void doAttoriSimili(ActionEvent event) {
-    	
-    	if(!this.model.grafoCreato()) {
-    		txtResult.appendText("ERRORE: Creare prima il grafo!\n");
-    	}
     	txtResult.clear();
     	Actor a = boxAttore.getValue();
     	if(a == null) {
     		txtResult.appendText("ERRORE: Selezionare un attore dal menu a tendina!\n");
+    		return;
     	}
     	List<Actor> attoriSimili = new ArrayList<>(this.model.getAttoriSimili(a));
-    	txtResult.appendText("ATTORI SIMILI A "+ a +": \n");
+    	txtResult.appendText("ATTORI SIMILI A: " + a +" \n");
     	for(Actor actor: attoriSimili) {
-    		txtResult.appendText("" + actor +"\n");
+    		txtResult.appendText(actor + "\n");
     	}
-    	
 
     }
 
@@ -73,15 +69,16 @@ public class FXMLController {
     void doCreaGrafo(ActionEvent event) {
     	txtResult.clear();
     	String genere = boxGenere.getValue();
-    	
     	if(genere == null) {
-    		txtResult.appendText("ERRORE: Selezionare prima un genere dal menu a tendina!\n");
+    		txtResult.appendText("ERRORE: Selezionare un genere dal menu a tendina!\n");
+    		return;
     	}
     	this.model.creaGrafo(genere);
-    	
+    	boxAttore.getItems().clear();
     	boxAttore.getItems().addAll(this.model.getVertici());
     	btnSimili.setDisable(false);
-
+    	btnSimulazione.setDisable(false);
+    	
     	txtResult.appendText("Grafo creato!\n");
     	txtResult.appendText("#VERTICI: "+ this.model.nVertici()+"\n");
     	txtResult.appendText("#ARCHI: "+ this.model.nArchi());
@@ -91,7 +88,6 @@ public class FXMLController {
 
     @FXML
     void doSimulazione(ActionEvent event) {
-
     	txtResult.clear();
     	Integer n = null;
     	try {
@@ -109,6 +105,7 @@ public class FXMLController {
     	for(Actor a : model.getIntervistati()) {
     		txtResult.appendText(a.toString() + "\n");
     	}
+    	
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
@@ -127,5 +124,7 @@ public class FXMLController {
     	this.model = model;
     	boxGenere.getItems().addAll(this.model.getAllGenres());
     	btnSimili.setDisable(true);
+    	btnSimulazione.setDisable(true);
+    	
     }
 }
